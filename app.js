@@ -7,6 +7,7 @@ import cors from "cors";
 import tutorRouter from "./routers/tutorRouter.js";
 import studentRouter from "./routers/studentRouter.js";
 import adminRouter from "./routers/adminRouter.js";
+import attendanceRouter from "./routers/attendanceRouter.js"
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(cors())
 app.use(tutorRouter)
 app.use(studentRouter)
 app.use(adminRouter)
+app.use(attendanceRouter)
 
 
 const port = process.env.PORT;

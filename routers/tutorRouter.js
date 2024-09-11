@@ -1,13 +1,25 @@
-import {Router} from "express";
-import { loginTutor, getTutor, updateTutor, addTutor } from "../controllers/tutorControllers.js";
+import { Router } from "express";
+import { loginTutor, updateTutor, getTutorDetails, addTutor, authStatus, logoutTutor } from "../controllers/tutorControllers.js";
+import { headerAuth } from "../utils/headerAuth.js";
 
+const route = Router();
 
-const route = Router()
+// Add Tutor
 route.post('/tutor', addTutor);
-route.get('/tutor', getTutor);
+
+// Check Tutor Auth Status
+route.get('/tutor/status', headerAuth, authStatus);
+
+// Tutor Login
 route.post('/tutor/login', loginTutor);
-route.put('/tutor/:id', updateTutor);
 
+// Update Tutor
+route.put('/tutor/:id', headerAuth, updateTutor);
 
+// Tutor Logout
+route.post('/tutor/logout', headerAuth, logoutTutor);
 
-export default route
+//get tutor
+route.get('/tutor/details', headerAuth, getTutorDetails)
+
+export default route;
