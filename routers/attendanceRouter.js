@@ -14,6 +14,6 @@ router.post("/attendance", addAttendance);
 router.get("/attendance/student/:studentId", getAttendanceByStudent);
 
 // Route to get filtered attendance records based on date, course, and cohort
-router.get("/attendance", getFilteredAttendance);
+router.get("/attendance/filtered", getFilteredAttendance);
 
 export default router;

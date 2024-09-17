@@ -1,25 +1,32 @@
 import { Router } from "express";
-import { loginTutor, updateTutor, getTutorDetails, addTutor, authStatus, logoutTutor } from "../controllers/tutorControllers.js";
-import { headerAuth } from "../utils/headerAuth.js";
+import {
+  loginTutor,
+  updateTutor,
+  getTutorDetails,
+  addTutor,
+  authStatus,
+  logoutTutor,
+} from "../controllers/tutorControllers.js";
+import { authenticateToken } from "../utils/authMiddleware.js";
 
-const route = Router();
+const router = Router();
 
 // Add Tutor
-route.post('/tutor', addTutor);
+router.post('/tutor', addTutor);
 
 // Check Tutor Auth Status
-route.get('/tutor/status', headerAuth, authStatus);
+router.get('/tutor/status', authenticateToken, authStatus);
 
 // Tutor Login
-route.post('/tutor/login', loginTutor);
+router.post('/tutor/login', loginTutor);
 
 // Update Tutor
-route.put('/tutor/:id', headerAuth, updateTutor);
+router.put('/tutor/:id', authenticateToken, updateTutor);
 
 // Tutor Logout
-route.post('/tutor/logout', headerAuth, logoutTutor);
+router.post('/tutor/logout', authenticateToken, logoutTutor);
 
-//get tutor
-route.get('/tutor/details', headerAuth, getTutorDetails)
+// Get Tutor Details
+router.get('/tutor/details', authenticateToken, getTutorDetails);
 
-export default route;
+export default router;

@@ -1,0 +1,16 @@
+{ 
+    "version": 2,
+    "name": "larvaAttendanceServer",
+    "routes": [
+        { 
+            "src": "/(.*)",
+            "dest": "/app.js"
+        }
+    ],
+    "builds": [
+        { 
+            "src": "/app.js",
+            "use": "@vercel/node"
+        }
+    ] 
+}
