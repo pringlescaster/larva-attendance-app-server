@@ -80,31 +80,3 @@ export const addStudents = async (req, res) => {
     }
 };
 
-// Update student's attendance status
-export const updateStudentAttendance = async (req, res) => {
-    try {
-        const { id } = req.params; // Student ID
-        const { status } = req.body; // Attendance status (present, absent, left)
-
-        // Validate status
-        if (!status) {
-            return res.status(400).json({ msg: "Attendance status is required" });
-        }
-
-        // Find and update the student's attendance status
-        const student = await studentModel.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true, runValidators: true } // Ensure it returns the updated document and validates schema
-        );
-
-        if (!student) {
-            return res.status(404).json({ msg: "Student not found" });
-        }
-
-        return res.status(200).json({ msg: "Attendance status updated successfully", student });
-    } catch (error) {
-        console.error("Error updating student attendance:", error);
-        return res.status(500).json({ error: error.message });
-    }
-};

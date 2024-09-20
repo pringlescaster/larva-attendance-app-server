@@ -1,84 +1,70 @@
 import attendanceModel from "../Models/attendanceModel.js";
 import studentModel from "../Models/studentModel.js";
 
-// Add or Update Attendance
-export const addAttendance = async (req, res) => {
+// Create Attendance
+
+export const createAttendance = async (req, res) =>{
     try {
-      const { student, status, date, course, cohort } = req.body;
-  
-      // Validate request data
-      if (!student || !status || !date || !course || !cohort) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-  
-      // Create new attendance record
-      const newAttendance = await Attendance.create({
-        student,
-        status,
-        date,
-        course,
-        cohort,
-      });
-  
-      // Return success response
-      return res.status(200).json({ message: "Attendance recorded successfully", data: newAttendance });
+        const { date, status, studentId } = req.body
+        const student = await studentModel.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ msg: "Student not found" });
+        }
+        const newAttendance = new attendanceModel({
+            date,
+            status,
+            student: student._id
+        });
+        await newAttendance.save();
+        student.attendance.push(newAttendance._id)
+        await student.save();
+
+        return res.status(201).json({msg: "Attendance Marked", newAttendance})
     } catch (error) {
-      console.error("Error recording attendance:", error);
-      return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ msg: error.message})
     }
-  };
-  
-// Get Attendance by Student
-export const getAttendanceByStudent = async (req, res) => {
+}
+
+
+//Fetch all attendance
+export const attendances = async (req, res) => {
     try {
-        const { studentId } = req.params;
-
-        if (!studentId) {
-            return res.status(400).json({ msg: "Student ID is required" });
+        const attendance = await attendanceModel.find().populate('student', 'image name studentNumber course cohort attendance')
+        if(attendance.length === 0) {
+            return res.status(404).json({ msg: "No attendance records found"})
         }
-
-        const attendanceRecords = await attendanceModel.find({ student: studentId });
-
-        if (!attendanceRecords.length) {
-            return res.status(404).json({ msg: "No attendance records found for this student" });
-        }
-
-        return res.status(200).json(attendanceRecords);
+        return res.status(200).json(attendance)
     } catch (error) {
-        console.error("Error fetching attendance by student:", error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ msg: error.message })
     }
-};
+}
 
-// Get Filtered Attendance
-export const getFilteredAttendance = async (req, res) => {
+//fetch attendance by date
+export const attendance = async (req,res) => {
     try {
-        const { date, course, cohort } = req.query;
-
-        let query = {};
-        if (date) {
-            const startDate = new Date(date);
-            startDate.setHours(0, 0, 0, 0);
-            const endDate = new Date(date);
-            endDate.setHours(23, 59, 59, 999);
-            query.date = { $gte: startDate, $lte: endDate };
+        const { date } = req.params
+        const attendance = await attendanceModel.find({ date }).populate('student', 'image name studentNumber course cohort attendance') 
+        if(!attendance){
+            return res.status(404).json({ msg: "Attendance not found"})
         }
-        if (course) {
-            query.course = course;
-        }
-        if (cohort) {
-            query.cohort = cohort;
-        }
-
-        const attendanceRecords = await attendanceModel.find(query);
-
-        if (!attendanceRecords.length) {
-            return res.status(404).json({ msg: "No attendance records found matching the filters" });
-        }
-
-        return res.status(200).json(attendanceRecords);
+        return res.status(200).json(attendance)
     } catch (error) {
-        console.error("Error fetching filtered attendance:", error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ msg: error.message })
     }
-};
+}
+
+
+//Delete student by ID
+
+export const deleteAttendance = async (req, res) => {
+    try {
+        const { id } = req.params
+        const deletedAttendance = await attendanceModel.findByIdAndDelete(id)
+        if (!deletedAttendance) {
+            return res.status(400).json({ msg: "Attendance not found" });
+        }
+        return res.status(200).json({ msg: "Attendance deleted" });
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+}

@@ -1,16 +1,20 @@
-import { Router } from "express";
-import { createAdmin, getAdminDetails, loginAdmin, logoutAdmin } from "../controllers/adminController.js";
-import { authenticateToken } from "../utils/authenticateToken.js";
-import { authStatus } from "../controllers/tutorControllers.js";
+import { Router } from 'express';
+import { admin, admins, authStatus, deleteAdmin, login, register, updateAdmin } from '../controllers/adminController.js';
+import { ensureAuthenticated } from '../utils/authMiddleware.js';
+
+const router = Router();
+
+//CREATE OPERATION
+router.post('/admin/register', register)
+router.post('/admin/login', login)
+//READ OPERATION
+router.get('/admin/auth/status', ensureAuthenticated, authStatus)
+router.get('/admins', admins)
+router.get('/admin/:id', admin)
+//UPDATE OPERATION
+router.put('/admin/:id', updateAdmin)
+//DELETE OPERATION
+router.delete('/admin/:id', deleteAdmin)
 
 
-const route = Router()
-route.post('/admin', createAdmin);
-route.post('/admin/login', loginAdmin);
-route.get('/admin/status', authenticateToken, authStatus)
-route.post('/admin/logout',authenticateToken,logoutAdmin)
-route.get('/admin/details', authenticateToken, getAdminDetails);
-
-
-
-export default route
+export default router;

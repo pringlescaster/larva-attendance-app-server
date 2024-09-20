@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 
 const tutorSchema = mongoose.Schema(
   {
+
+    image: { 
+      type: String, 
+  },
+  publicId: { 
+      type: String,
+  },
+
     name: {
       type: String,
       required: true,
