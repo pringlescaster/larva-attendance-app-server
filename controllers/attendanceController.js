@@ -3,27 +3,30 @@ import studentModel from "../Models/studentModel.js";
 
 // Create Attendance
 
-export const createAttendance = async (req, res) =>{
+export const createAttendance = async (req, res) => {
     try {
-        const { date, status, studentId } = req.body
+        const { date, status, studentId } = req.body;
         const student = await studentModel.findById(studentId);
+        
         if (!student) {
             return res.status(404).json({ msg: "Student not found" });
         }
+
         const newAttendance = new attendanceModel({
             date,
             status,
             student: student._id
         });
+
         await newAttendance.save();
-        student.attendance.push(newAttendance._id)
+        student.attendance.push(newAttendance._id);
         await student.save();
 
-        return res.status(201).json({msg: "Attendance Marked", newAttendance})
+        return res.status(201).json({ msg: "Attendance Marked", newAttendance });
     } catch (error) {
-        return res.status(500).json({ msg: error.message})
+        return res.status(500).json({ msg: error.message });
     }
-}
+};
 
 
 //Fetch all attendance

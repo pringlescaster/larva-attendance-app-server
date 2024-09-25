@@ -1,18 +1,20 @@
-import { Router } from "express";
-import {
-  addStudents,
-  getAllStudents,
-  getStudentById,
-
-} from "../controllers/studentControllers.js";
-import { ensureAuthenticated } from "../utils/authMiddleware.js"; // Import authentication middleware
+import { Router } from 'express';
+import { deleteStudent, getAllStudents, getStudentById, registerStudent, updateStudent } from '../controllers/studentControllers.js';
 
 const router = Router();
 
-// Apply authentication middleware to the necessary routes
-router.get('/students', ensureAuthenticated, getAllStudents); // Only authenticated tutors can get all students
-router.get('/students/:id', ensureAuthenticated, getStudentById); // Only authenticated tutors can get a specific student by ID
-router.post('/addstudents', ensureAuthenticated, addStudents); // Only authenticated tutors can add students
+// CREATE OPERATION
+router.post('/student/register', registerStudent); // Register students without authentication check
 
+// READ OPERATION
+router.get('/students', getAllStudents); // List all students without authentication check
+router.get('/student/:id', getStudentById); // Get a specific student without authentication check
+
+// UPDATE OPERATION
+router.put('/student/:id', updateStudent); // Update student without authentication check
+
+// DELETE OPERATION
+router.delete('/student/:id', deleteStudent); // Delete student without authentication check
 
 export default router;
+

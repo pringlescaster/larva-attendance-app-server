@@ -1,20 +1,20 @@
 import jwt from "jsonwebtoken";
 
-//middleware function to decode token
-export const ensureAuthenticated = (req,res,next) =>{ 
-    // const accessToken = req.cookies.accessToken
+// Middleware function to authenticate the token
+export const ensureAuthenticated = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    if(!authHeader || !authHeader.startsWith('Bearer ')){
-        return res.status(401).json({ msg: 'No token provided'})
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ msg: 'No token provided' });
     }
-        
+
     const token = authHeader.split(' ')[1];
 
     try {
-        const decodedToken = jwt.verify(token, process.env.JWT_ACCESS_SECRET)
-        req.user = { id: decodedToken.userId }
-        next()
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // Ensure this matches your secret
+        req.user = { id: decodedToken.id }; // Use 'id' from the payload
+        next();
     } catch (error) {
-        return res.status(401).json({ msg: 'Unauthorized' })
+        console.error("Token verification error:", error);
+        return res.status(401).json({ msg: 'Unauthorized' });
     }
-}
+};

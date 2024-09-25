@@ -1,82 +1,100 @@
 import studentModel from "../Models/studentModel.js";
 import tutorModel from "../Models/tutorModel.js";
 
-// Get all students for the current tutor
-export const getAllStudents = async (req, res) => {
+// REGISTER STUDENT (No authentication)
+export const registerStudent = async (req, res) => {
     try {
-        // Get the tutor ID from the request (set in middleware)
-        const tutorId = req.user.id;
+        const { body } = req;
+        const { tutorId } = body; // Assume tutorId is provided in the request body
 
-        // Find students associated with the tutor
-        const students = await studentModel.find({ tutor: tutorId });
-
-        if (!students.length) {
-            return res.status(404).json({ msg: "No students found for this tutor" });
-        }
-
-        return res.status(200).json(students);
-    } catch (error) {
-        console.error("Error retrieving students:", error);
-        return res.status(500).json({ error: error.message });
-    }
-};
-
-// Get a specific student by ID for the current tutor
-export const getStudentById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        // Get the tutor ID from the request (set in middleware)
-        const tutorId = req.user.id;
-
-        // Find the student by ID and ensure they are associated with the current tutor
-        const student = await studentModel.findOne({ _id: id, tutor: tutorId });
-
-        if (!student) {
-            return res.status(404).json({ msg: "Student not found or not associated with this tutor" });
-        }
-
-        return res.status(200).json(student);
-    } catch (error) {
-        console.error("Error retrieving student:", error);
-        return res.status(500).json({ error: error.message });
-    }
-};
-
-// Add a new student (Ensure the tutor is authenticated)
-export const addStudents = async (req, res) => {
-    try {
-        const { name, studentnumber, course, cohort } = req.body;
-
-        // Get the tutor ID from the request (set in middleware)
-        const tutorId = req.user.id;
-
-        // Check if the tutor exists
+        // Find the tutor by their ID
         const tutor = await tutorModel.findById(tutorId);
         if (!tutor) {
             return res.status(404).json({ msg: "Tutor not found" });
         }
 
-        // Check if the student already exists
-        const existingStudent = await studentModel.findOne({ studentnumber });
-        if (existingStudent) {
-            return res.status(400).json({ msg: "Student with this number already exists" });
-        }
+        // Create new student and associate with the tutor
+        const newStudent = new studentModel({ ...body, tutor: tutorId });
 
-        // Create and save new student with tutor ID
-        const newStudent = new studentModel({
-            name,
-            studentnumber,
-            course,
-            cohort,
-            tutor: tutorId, // Associate student with the tutor
-        });
-
+        // Save the student
         await newStudent.save();
 
-        return res.status(201).json({ msg: "Student added successfully", newStudent });
+        // Add the student to the tutor's list of students
+        tutor.students.push(newStudent._id);
+        await tutor.save(); // Update tutor record to reflect the student association
+
+        return res.status(201).json({ msg: "Student Registered", newStudent });
     } catch (error) {
-        console.error("Error adding student:", error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ msg: error.message });
     }
 };
 
+export const getAllStudents = async (req, res) => {
+    try {
+        const { tutorId } = req.query; // Assume tutorId is provided in the query string
+
+        // Find students associated with the tutor
+        const students = await studentModel.find({ tutor: tutorId }).populate('attendance', '-_id -createdAt -updatedAt -__v');
+        if (students.length === 0) {
+            return res.status(404).json({ msg: 'No students found for this tutor' });
+        }
+        return res.status(200).json(students);
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+
+export const getStudentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tutorId } = req.query; // Assume tutorId is provided in the query string
+
+        const student = await studentModel.findOne({ _id: id, tutor: tutorId }).populate('attendance', '-_id -createdAt -updatedAt -__v');
+        if (!student) {
+            return res.status(404).json({ msg: 'Student not found or not associated with this tutor' });
+        }
+        return res.status(200).json(student);
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+export const updateStudent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tutorId } = req.body; // Assume tutorId is provided in the body
+
+        const updatedStudent = await studentModel.findOneAndUpdate(
+            { _id: id, tutor: tutorId },
+            req.body,
+            { new: true }
+        );
+
+        if (!updatedStudent) {
+            return res.status(404).json({ msg: 'Student not found or not associated with this tutor' });
+        }
+        return res.status(200).json({ msg: "Student is updated", updatedStudent });
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
+
+export const deleteStudent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tutorId } = req.body; // Assume tutorId is provided in the body
+
+        const deletedStudent = await studentModel.findOneAndDelete({ _id: id, tutor: tutorId });
+        if (!deletedStudent) {
+            return res.status(404).json({ msg: "Student not found or not associated with this tutor" });
+        }
+
+        // Remove the student's ID from the tutor's student list
+        await tutorModel.updateOne({ _id: tutorId }, { $pull: { students: id } });
+
+        return res.status(200).json({ msg: "Student is deleted" });
+    } catch (error) {
+        return res.status(500).json({ msg: error.message });
+    }
+};
