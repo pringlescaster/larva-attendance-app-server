@@ -2,32 +2,23 @@ import studentModel from "../Models/studentModel.js";
 import tutorModel from "../Models/tutorModel.js";
 
 // REGISTER STUDENT (No authentication)
+
 export const registerStudent = async (req, res) => {
     try {
         const { body } = req;
-        const { tutorId } = body; // Assume tutorId is provided in the request body
 
-        // Find the tutor by their ID
-        const tutor = await tutorModel.findById(tutorId);
-        if (!tutor) {
-            return res.status(404).json({ msg: "Tutor not found" });
-        }
-
-        // Create new student and associate with the tutor
-        const newStudent = new studentModel({ ...body, tutor: tutorId });
+        // Create new student without tutor association
+        const newStudent = new studentModel(body);
 
         // Save the student
         await newStudent.save();
-
-        // Add the student to the tutor's list of students
-        tutor.students.push(newStudent._id);
-        await tutor.save(); // Update tutor record to reflect the student association
 
         return res.status(201).json({ msg: "Student Registered", newStudent });
     } catch (error) {
         return res.status(500).json({ msg: error.message });
     }
 };
+
 
 export const getAllStudents = async (req, res) => {
     try {

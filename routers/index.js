@@ -1,7 +1,7 @@
 import { Router } from "express";
 import adminRouter from "./adminRouter.js";
 import attendanceRouter from "./attendanceRouter.js";
-import studentRouter from "./studentRouter.js";
+import studentRouter from "./studentRouter.js"
 import tutorRouter from "./tutorRouter.js";
 
 
