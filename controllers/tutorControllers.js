@@ -1,4 +1,3 @@
-import adminModel from "../Models/adminModel.js"; 
 import tutorModel from "../Models/tutorModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -8,40 +7,36 @@ export const loginTutor = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Find the tutor by email
         const tutor = await tutorModel.findOne({ email });
         if (!tutor) {
             return res.status(400).json({ msg: "Invalid email or password" });
         }
 
-        // Compare the provided password with the hashed password in the database
         const passwordCompare = await bcrypt.compare(password, tutor.password);
         if (!passwordCompare) {
             return res.status(401).json({ msg: "Invalid email or password" });
         }
 
-        // Generate a JWT token
         const accessToken = jwt.sign(
-            { userId: tutor._id },  // Include tutor's ID in the payload
-            process.env.ACCESS_TOKEN_SECRET,  // Use the secret key from environment variables
-            { expiresIn: process.env.EXPIRATION }  // Token expiration time
+            { userId: tutor._id },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: process.env.EXPIRATION }
         );
 
-        // Send the response with the token and tutor data
         return res.status(200).json({ msg: "Login Successful", accessToken });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
 };
 
-// Auth Status - Check if the user is authenticated
+// Auth Status
 export const authStatus = async (req, res) => {
     try {
         if (!req.user) {
             return res.status(401).json({ msg: "Invalid Token" });
         }
 
-        const tutor = await tutorModel.findById(req.user.userId); // Update to use userId
+        const tutor = await tutorModel.findById(req.user.userId);
         if (!tutor) {
             return res.status(404).json({ msg: "Tutor not found" });
         }
@@ -52,14 +47,12 @@ export const authStatus = async (req, res) => {
     }
 };
 
-
-
 // Add Tutor
 export const addTutor = async (req, res) => {
     try {
         const { name, course, email, password, admin } = req.body;
         const saltRounds = 10;
-        const hashedPassword = bcrypt.hashSync(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const adminId = await adminModel.findById(admin);
         if (!adminId) {
@@ -75,7 +68,6 @@ export const addTutor = async (req, res) => {
         });
 
         await newTutor.save();
-
         adminId.tutors.push(newTutor._id);
         await adminId.save();
 
@@ -88,7 +80,7 @@ export const addTutor = async (req, res) => {
 // Get Tutor Details
 export const getTutorDetails = async (req, res) => {
     try {
-        const tutorId = req.user.id;
+        const tutorId = req.user.userId;
         const tutor = await tutorModel.findById(tutorId);
         if (!tutor) {
             return res.status(404).json({ msg: "Tutor not found" });
@@ -100,35 +92,13 @@ export const getTutorDetails = async (req, res) => {
     }
 };
 
-// Update Tutor
-export const updateTutor = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, course, email } = req.body;
-
-        const updatedTutor = await tutorModel.findByIdAndUpdate(
-            id,
-            { name, course, email },
-            { new: true }
-        );
-
-        if (!updatedTutor) {
-            return res.status(404).json({ msg: "Tutor not found" });
-        }
-
-        return res.status(200).json({ msg: "Tutor updated successfully", updatedTutor });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-};
-
 // Update Tutor password
 export const updatePw = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { currentpassword, confirmpassword } = req.body;
+        const { userId } = req.user; // Get user ID from authenticated request
+        const { currentpassword, newpassword } = req.body;
 
-        const tutor = await tutorModel.findById(id);
+        const tutor = await tutorModel.findById(userId);
         if (!tutor) {
             return res.status(404).json({ msg: "Tutor not found" });
         }
@@ -138,35 +108,17 @@ export const updatePw = async (req, res) => {
             return res.status(401).json({ msg: "Invalid current password" });
         }
 
-        if (currentpassword === confirmpassword) {
-            return res.status(400).json({ msg: "Current password and new password should not be the same" });
+        if (currentpassword === newpassword) {
+            return res.status(400).json({ msg: "New password cannot be the same as the current password." });
         }
 
         const saltRounds = 10;
-        const hashedPassword = bcrypt.hashSync(confirmpassword, saltRounds);
-        const updatedTutor = await tutorModel.findByIdAndUpdate(
-            id,
-            { password: hashedPassword },
-            { new: true }
-        );
+        const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
 
-        return res.status(200).json({ msg: "Tutor password is updated", updatedTutor });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-};
+        tutor.password = hashedPassword;
+        await tutor.save();
 
-// Delete Tutor
-export const deleteTutor = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const deletedTutor = await tutorModel.findByIdAndDelete(id);
-        if (!deletedTutor) {
-            return res.status(404).json({ msg: "Tutor not found" });
-        }
-
-        return res.status(200).json({ msg: "Tutor deleted successfully", deletedTutor });
+        return res.status(200).json({ msg: "Password updated successfully" });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -175,7 +127,6 @@ export const deleteTutor = async (req, res) => {
 // Tutor Logout
 export const logoutTutor = async (req, res) => {
     try {
-        // Clear the authentication cookies
         res.clearCookie("accessToken", { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
         res.clearCookie("refreshToken", { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/api/refresh_token' });
 
