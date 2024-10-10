@@ -1,4 +1,5 @@
 import tutorModel from "../Models/tutorModel.js";
+import adminModel from "../Models/adminModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -23,7 +24,16 @@ export const loginTutor = async (req, res) => {
             { expiresIn: process.env.EXPIRATION }
         );
 
-        return res.status(200).json({ msg: "Login Successful", accessToken });
+        return res.status(200).json({
+            msg: "Login Successful",
+            accessToken,
+            user: {
+              id: tutor._id,
+              name: tutor.name,
+              email: tutor.email,
+              course: tutor.course,
+            },
+          });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -91,6 +101,42 @@ export const getTutorDetails = async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 };
+
+//Update Tutor details
+ export const updateTutor = async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { name, course, email } = req.body
+
+        const tutor = await tutorModel.findById(userId);
+        if (!tutor) {
+            return res.status(404).json({ msg: "Tutor not found" });
+        }
+
+        tutor.name = name || tutor.name;
+        tutor.course = course || tutor.course;
+        tutor.email = email || tutor.email;
+
+
+        const updatedTutor = await tutor.save();
+
+        return res.status(200).json({
+            msg: "Tutor details updated successfully",
+            tutor: {
+                id: updatedTutor._id,
+                name: updatedTutor.name,
+                course: updatedTutor.course,
+                email: updatedTutor.email,
+            },
+        });
+
+    } catch (error) {
+        console.error("Error updating tutor:", error.message);
+        return res.status(500).json({ msg: "Server error" });
+    }
+    }
+ 
+
 
 // Update Tutor password
 export const updatePw = async (req, res) => {

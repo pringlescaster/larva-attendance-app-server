@@ -6,6 +6,7 @@ import {
   authStatus,
   logoutTutor,
   updatePw,
+  updateTutor,
 } from "../controllers/tutorControllers.js";
 import { authenticateJWT } from "../utils/authMiddleware.js";
 
@@ -21,6 +22,7 @@ router.get('/tutors', authenticateJWT, getTutorDetails);
 
 //UPDATE OPERATION
 router.put('/tutor/password', authenticateJWT, updatePw);
+router.put('/tutor/profile', authenticateJWT, updateTutor);
 
 // Tutor Logout
 router.post('/tutor/logout', authenticateJWT, logoutTutor);
