@@ -1,26 +1,26 @@
 import { Router } from "express";
 import {
-  loginTutor,
-  getTutorDetails,
-  addTutor,
-  authStatus,
-  logoutTutor,
-  updatePw,
-  updateTutor,
+    loginTutor,
+    getTutorDetails,
+    addTutor,
+    authStatus,
+    logoutTutor,
+    updatePw,
+    updateTutor,
 } from "../controllers/tutorControllers.js";
 import { authenticateJWT } from "../utils/authMiddleware.js";
 
 const router = Router();
 
-//CREATE OPERATION
+// CREATE OPERATION
 router.post('/tutor/register', addTutor);
 router.post('/tutor/login', loginTutor);
 
-//READ OPERATION
+// READ OPERATION
 router.get('/tutor/auth/status', authenticateJWT, authStatus);
-router.get('/tutors', authenticateJWT, getTutorDetails);
+router.get('/tutor/profile', authenticateJWT, getTutorDetails); // Unified route for getting tutor details
 
-//UPDATE OPERATION
+// UPDATE OPERATION
 router.put('/tutor/password', authenticateJWT, updatePw);
 router.put('/tutor/profile', authenticateJWT, updateTutor);
 

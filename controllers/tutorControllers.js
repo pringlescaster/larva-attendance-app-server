@@ -28,12 +28,12 @@ export const loginTutor = async (req, res) => {
             msg: "Login Successful",
             accessToken,
             user: {
-              id: tutor._id,
-              name: tutor.name,
-              email: tutor.email,
-              course: tutor.course,
+                id: tutor._id,
+                name: tutor.name,
+                email: tutor.email,
+                course: tutor.course,
             },
-          });
+        });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
@@ -51,7 +51,11 @@ export const authStatus = async (req, res) => {
             return res.status(404).json({ msg: "Tutor not found" });
         }
 
-        return res.status(200).json({ id: tutor._id, name: tutor.name, course: tutor.course });
+        return res.status(200).json({
+            id: tutor._id,
+            name: tutor.name,
+            course: tutor.course,
+        });
     } catch (error) {
         return res.status(500).json({ msg: "Server Error", error: error.message });
     }
@@ -102,11 +106,11 @@ export const getTutorDetails = async (req, res) => {
     }
 };
 
-//Update Tutor details
- export const updateTutor = async (req, res) => {
+// Update Tutor details
+export const updateTutor = async (req, res) => {
     try {
         const { userId } = req.user;
-        const { name, course, email } = req.body
+        const { name, course, email } = req.body;
 
         const tutor = await tutorModel.findById(userId);
         if (!tutor) {
@@ -116,7 +120,6 @@ export const getTutorDetails = async (req, res) => {
         tutor.name = name || tutor.name;
         tutor.course = course || tutor.course;
         tutor.email = email || tutor.email;
-
 
         const updatedTutor = await tutor.save();
 
@@ -129,14 +132,11 @@ export const getTutorDetails = async (req, res) => {
                 email: updatedTutor.email,
             },
         });
-
     } catch (error) {
         console.error("Error updating tutor:", error.message);
         return res.status(500).json({ msg: "Server error" });
     }
-    }
- 
-
+};
 
 // Update Tutor password
 export const updatePw = async (req, res) => {
