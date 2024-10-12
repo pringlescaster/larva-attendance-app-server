@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { deleteStudent, getAllStudents, getStudentById, registerStudent, updateStudent } from '../controllers/studentControllers.js';
 
+
 const router = Router();
 
 // CREATE OPERATION
