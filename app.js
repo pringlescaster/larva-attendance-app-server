@@ -13,7 +13,7 @@ app.use(cookieParser());
 
 // CORS Configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Allow this origin
+  origin: process.env.CLIENT_DOMAIN, // Allow this origin
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Ensure OPTIONS is included for preflight requests
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
