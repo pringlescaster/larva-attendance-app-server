@@ -23,6 +23,6 @@ const storage = new CloudinaryStorage({
 
 //Multer setup for handling form-data, including images
 
-const upload = multer({ storage });
+const upload = multer({ storage }); 
 
 export { cloudinary, upload };
