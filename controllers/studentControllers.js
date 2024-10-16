@@ -1,5 +1,6 @@
 import studentModel from "../Models/studentModel.js";
 import tutorModel from "../Models/tutorModel.js";
+import { cloudinary } from "../config/cloudinary.js";
 
 // REGISTER STUDENT (No authentication)
 
@@ -7,8 +8,14 @@ export const registerStudent = async (req, res) => {
     try {
         const { body } = req;
 
+        let image = null, publicId = null;
+        if (req.file) {
+            image = req.file.path;
+            publicId = req.file.filename;
+        }
+
         // Create new student without tutor association
-        const newStudent = new studentModel(body);
+        const newStudent = new studentModel({...body, image, publicId});
 
         // Save the student
         await newStudent.save();
@@ -56,9 +63,21 @@ export const updateStudent = async (req, res) => {
         const { id } = req.params;
         const { tutorId } = req.body; // Assume tutorId is provided in the body
 
+        let image = null, publicId = null;
+        if (req.file) {
+            const student = await studentModel.findById(id);
+            if ( student && student.publicId ) {
+                await cloudinary.uploader.destroy(student.publicId);
+            }
+
+            image = req.file.path;
+            publicId = req.file.filename;
+        }
+
+        
         const updatedStudent = await studentModel.findOneAndUpdate(
             { _id: id, tutor: tutorId },
-            req.body,
+            { ...req.body, image, publicId },
             { new: true }
         );
 
@@ -83,6 +102,12 @@ export const deleteStudent = async (req, res) => {
 
         // Remove the student's ID from the tutor's student list
         await tutorModel.updateOne({ _id: tutorId }, { $pull: { students: id } });
+
+        //Remove the image from Cloudinary if it exists
+        if (deletedStudent.publicId) {
+            await cloudinary.uploader.destroy(deletedStudent.publicId);
+        }
+
 
         return res.status(200).json({ msg: "Student is deleted" });
     } catch (error) {

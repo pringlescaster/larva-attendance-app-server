@@ -2,6 +2,7 @@ import tutorModel from "../Models/tutorModel.js";
 import adminModel from "../Models/adminModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { cloudinary } from "../config/cloudinary.js";
 
 // Login Tutor
 export const loginTutor = async (req, res) => {
@@ -73,11 +74,20 @@ export const addTutor = async (req, res) => {
             return res.status(404).json({ msg: "Admin not found" });
         }
 
+        //Upload image to cloudinary (if provided)
+        let image, publicId;
+        if (req.file) {
+            image = req.file.path;
+            publicId = req.file.filename
+        }
+
         const newTutor = new tutorModel({
             name,
             course,
             email,
             password: hashedPassword,
+            image,
+            publicId,
             admin: adminId._id,
         });
 
@@ -117,9 +127,23 @@ export const updateTutor = async (req, res) => {
             return res.status(404).json({ msg: "Tutor not found" });
         }
 
+        //check if new image was provided
+        let image, publicId;
+        if (req.file) {
+            //if there is a previous image in the cloudinary remove it
+            if (tutor.publicId) {
+                await cloudinary.uploader.destroy(tutor.publicId);
+    
+        }
+        image = req.file.path;
+        publicId = req.file.filename;
+    }
+
         tutor.name = name || tutor.name;
         tutor.course = course || tutor.course;
         tutor.email = email || tutor.email;
+        tutor.image = image || tutor.image;
+        tutor.publicId = publicId || tutor.publicId;
 
         const updatedTutor = await tutor.save();
 
@@ -130,6 +154,7 @@ export const updateTutor = async (req, res) => {
                 name: updatedTutor.name,
                 course: updatedTutor.course,
                 email: updatedTutor.email,
+                image: updatedTutor.image,
             },
         });
     } catch (error) {

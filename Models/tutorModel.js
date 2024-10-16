@@ -7,7 +7,7 @@ const tutorSchema = mongoose.Schema(
       type: String, 
   },
   publicId: { 
-      type: String,
+      type: String, //Public ID for managing and deleting in cloudinary
   },
 
     name: {
