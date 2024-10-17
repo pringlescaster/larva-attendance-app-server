@@ -9,7 +9,8 @@ const uploadFile = (req, res) => {
       file: {
         url: req.file.path, // URL of the uploaded file in Cloudinary
         original_filename: req.file.originalname, // Original filename
-        public_id: req.file.filename, // Public ID in Cloudinary
+        public_id: req.file.public_id,
+
       },
     });
   }
@@ -17,7 +18,7 @@ const uploadFile = (req, res) => {
 };
 
 // Middleware for handling file upload
-const uploadMiddleware = upload.single('imageFieldName'); // Replace 'imageFieldName' with your actual field name
+const uploadMiddleware = upload.single('image'); // Replace 'imageFieldName' with your actual field name
 
 export { uploadFile, uploadMiddleware };
 

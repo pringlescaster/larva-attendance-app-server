@@ -95,11 +95,13 @@ export const deleteStudent = async (req, res) => {
         // Remove the student's ID from the tutor's student list
         await tutorModel.updateOne({ _id: tutorId }, { $pull: { students: id } });
 
-        // Remove the local image if it exists
         if (deletedStudent.image) {
-            const fs = require('fs');
-            fs.unlinkSync(deletedStudent.image); // Delete the image file from the uploads folder
-        }
+            const publicId = deletedStudent.image.split('/').pop().split('.')[0]; // Extract public ID
+            cloudinary.uploader.destroy(publicId, function (error, result) {
+              if (error) console.log("Error deleting image from Cloudinary:", error);
+            });
+          }
+          
 
         return res.status(200).json({ msg: "Student is deleted" });
     } catch (error) {
