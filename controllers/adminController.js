@@ -1,7 +1,6 @@
 import adminModel from "../Models/adminModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { cloudinary } from "../config/cloudinary.js";
 
 // Admin Registration
 export const register = async (req, res) => {
@@ -10,19 +9,13 @@ export const register = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = bcrypt.hashSync(password, saltRounds);
 
-        let image = null;
-        let publicId = null;
-
-        // Handle image upload if present
+        let image;
         if (req.file) {
-            const uploadResponse = await cloudinary.uploader.upload(req.file.path); // Upload to Cloudinary
-            image = uploadResponse.secure_url; // Get secure URL
-            publicId = uploadResponse.public_id; // Get public ID for future reference
+            image = req.file.path; // multer stores file locally, use the file path
         }
 
         const newAdmin = new adminModel({
             image,
-            publicId,
             name,
             email,
             password: hashedPassword,
@@ -123,33 +116,23 @@ export const admin = async (req, res) => {
 export const updateAdmin = async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedData = req.body;
+        const { name, email, role } = req.body;
 
         const admin = await adminModel.findById(id);
         if (!admin) {
             return res.status(404).json({ msg: 'Admin not found' });
         }
 
-        let image = admin.image; // Retain existing image
-        let publicId = admin.publicId; // Retain existing public ID
-
-        // Handle image upload if present
+        let image;
         if (req.file) {
-            // Remove the old image from Cloudinary if it exists
-            if (publicId) {
-                await cloudinary.uploader.destroy(publicId);
-            }
-
-            const uploadResponse = await cloudinary.uploader.upload(req.file.path); // Upload new image
-            image = uploadResponse.secure_url; // Get secure URL
-            publicId = uploadResponse.public_id; // Update public ID
+            image = req.file.path; // multer stores the file locally, using its path
         }
 
         // Update the admin fields
-        admin.name = updatedData.name || admin.name;
-        admin.email = updatedData.email || admin.email;
-        admin.image = image; // Update with new image URL
-        admin.publicId = publicId; // Update with new public ID
+        admin.name = name || admin.name;
+        admin.email = email || admin.email;
+        admin.image = image || admin.image;
+        admin.role = role || admin.role;
 
         await admin.save(); // Save the updated admin
 
@@ -176,11 +159,7 @@ export const deleteAdmin = async (req, res) => {
             return res.status(404).json({ msg: "Admin not found in database" });
         }
 
-        // Remove the associated image from Cloudinary if it exists
-        if (admin.publicId) {
-            await cloudinary.uploader.destroy(admin.publicId);
-        }
-
+        // Since Cloudinary is removed, no need to handle image deletion here
         return res.status(200).json({ msg: "Admin deleted successfully" });
     } catch (error) {
         res.status(500).json({ msg: error.message });

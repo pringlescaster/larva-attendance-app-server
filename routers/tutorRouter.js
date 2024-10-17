@@ -8,7 +8,7 @@ import {
     updatePw,
     updateTutor,
 } from "../controllers/tutorControllers.js";
-import { upload } from "../config/cloudinary.js";
+import { upload } from "../config/multer.js";
 import { authenticateJWT } from "../utils/authMiddleware.js";
 
 const router = Router();

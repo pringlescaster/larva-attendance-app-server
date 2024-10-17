@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { admin, admins, authStatus, deleteAdmin, login, register, updateAdmin } from '../controllers/adminController.js';
 import { authenticateJWT } from "../utils/authMiddleware.js";
-import { upload } from '../config/cloudinary.js';
+import { upload } from '../config/multer.js';
 
 const router = Router();
 

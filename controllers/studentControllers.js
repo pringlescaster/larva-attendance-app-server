@@ -1,21 +1,18 @@
 import studentModel from "../Models/studentModel.js";
 import tutorModel from "../Models/tutorModel.js";
-import { cloudinary } from "../config/cloudinary.js";
 
 // REGISTER STUDENT (No authentication)
-
 export const registerStudent = async (req, res) => {
     try {
         const { body } = req;
 
-        let image = null, publicId = null;
+        let image = null;
         if (req.file) {
-            image = req.file.path;
-            publicId = req.file.filename;
+            image = req.file.path; // Store the local path of the uploaded file
         }
 
         // Create new student without tutor association
-        const newStudent = new studentModel({...body, image, publicId});
+        const newStudent = new studentModel({ ...body, image });
 
         // Save the student
         await newStudent.save();
@@ -26,7 +23,7 @@ export const registerStudent = async (req, res) => {
     }
 };
 
-
+// GET ALL STUDENTS
 export const getAllStudents = async (req, res) => {
     try {
         const { tutorId } = req.query; // Assume tutorId is provided in the query string
@@ -42,7 +39,7 @@ export const getAllStudents = async (req, res) => {
     }
 };
 
-
+// GET STUDENT BY ID
 export const getStudentById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -58,26 +55,20 @@ export const getStudentById = async (req, res) => {
     }
 };
 
+// UPDATE STUDENT
 export const updateStudent = async (req, res) => {
     try {
         const { id } = req.params;
         const { tutorId } = req.body; // Assume tutorId is provided in the body
 
-        let image = null, publicId = null;
+        let image = null;
         if (req.file) {
-            const student = await studentModel.findById(id);
-            if ( student && student.publicId ) {
-                await cloudinary.uploader.destroy(student.publicId);
-            }
-
-            image = req.file.path;
-            publicId = req.file.filename;
+            image = req.file.path; // Update the image if a new one is uploaded
         }
 
-        
         const updatedStudent = await studentModel.findOneAndUpdate(
             { _id: id, tutor: tutorId },
-            { ...req.body, image, publicId },
+            { ...req.body, image },
             { new: true }
         );
 
@@ -90,6 +81,7 @@ export const updateStudent = async (req, res) => {
     }
 };
 
+// DELETE STUDENT
 export const deleteStudent = async (req, res) => {
     try {
         const { id } = req.params;
@@ -103,11 +95,11 @@ export const deleteStudent = async (req, res) => {
         // Remove the student's ID from the tutor's student list
         await tutorModel.updateOne({ _id: tutorId }, { $pull: { students: id } });
 
-        //Remove the image from Cloudinary if it exists
-        if (deletedStudent.publicId) {
-            await cloudinary.uploader.destroy(deletedStudent.publicId);
+        // Remove the local image if it exists
+        if (deletedStudent.image) {
+            const fs = require('fs');
+            fs.unlinkSync(deletedStudent.image); // Delete the image file from the uploads folder
         }
-
 
         return res.status(200).json({ msg: "Student is deleted" });
     } catch (error) {
