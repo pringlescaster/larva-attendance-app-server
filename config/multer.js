@@ -1,13 +1,23 @@
 import multer from "multer";
 import path from "path";
 import dotenv from "dotenv";
+import fs from "fs";
 
+// Load environment variables from .env file
 dotenv.config();
 
-//Multer configuration for local storage
+// Define the uploads directory
+const uploadDir = "uploads/";
+
+// Ensure the uploads directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true }); // Create directory recursively
+}
+
+// Multer configuration for local storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Folder where images will be saved
+    cb(null, uploadDir); // Folder where images will be saved
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -28,7 +38,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-
 // Set up multer with storage and file filtering options
 const upload = multer({
   storage,
@@ -36,4 +45,5 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // Max file size of 5MB
 });
 
+// Export the upload middleware
 export { upload };

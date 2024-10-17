@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import routers from "./routers/index.js";
+import uploadRouter from "./routers/uploadRouter.js"; // Import the upload router
 
 const app = express();
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(cors({
 
 // Add your routers
 app.use('/api/v1', routers);
+app.use('/api/v1', uploadRouter); // Mount the upload router
 
 // Custom 404
 app.use((req, res) => {
@@ -44,6 +46,5 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((error) => {
     console.log("Database connection error:", error.message);
   });
-
 
 export default app;
