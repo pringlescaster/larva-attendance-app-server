@@ -9,7 +9,7 @@ const uploadFile = (req, res) => {
       file: {
         url: req.file.path,
         original_filename: req.file.originalname,
-        public_id: req.file.public_id,
+        public_id: req.file.filename,
 
       }, 
     });
