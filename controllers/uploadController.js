@@ -7,11 +7,11 @@ const uploadFile = (req, res) => {
     return res.status(200).json({
       message: 'File uploaded successfully!',
       file: {
-        url: req.file.path, // URL of the uploaded file in Cloudinary
-        original_filename: req.file.originalname, // Original filename
+        url: req.file.path,
+        original_filename: req.file.originalname,
         public_id: req.file.public_id,
 
-      },
+      }, 
     });
   }
   res.status(400).json({ error: 'File upload failed!' });

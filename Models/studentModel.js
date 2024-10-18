@@ -4,6 +4,7 @@ const studentSchema = mongoose.Schema(
   {
     image: {
       type: String,
+      default: null,
     },
     publicId: {
       type: String,

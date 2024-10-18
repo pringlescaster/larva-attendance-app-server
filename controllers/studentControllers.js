@@ -5,12 +5,11 @@ import tutorModel from "../Models/tutorModel.js";
 export const registerStudent = async (req, res) => {
     try {
         const { body } = req;
-
         let image = null;
         if (req.file) {
-            image = req.file.path; // Store the local path of the uploaded file
+            image = req.file.path;  
         }
-
+ 
         // Create new student without tutor association
         const newStudent = new studentModel({ ...body, image });
 
