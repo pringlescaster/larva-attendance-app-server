@@ -4,14 +4,30 @@ import tutorModel from "../Models/tutorModel.js";
 // REGISTER STUDENT (No authentication)
 export const registerStudent = async (req, res) => {
     try {
-        const { body } = req;
-        let image = null;
+        const { name, studentnumber, course, cohort, tutor, attendance } = req.body;
+        const { filename, path } = req.file
+
+        let pic;
+        let url;
+
         if (req.file) {
-            image = req.file.path;  
+            pic = filename;
+            url =  path;
         }
  
         // Create new student without tutor association
-        const newStudent = new studentModel({ ...body, image });
+        // const newStudent = new studentModel({ ...body, image });
+
+        const newStudent = new studentModel({
+            image: url,
+            publicId: pic,
+            name,
+            studentnumber,
+            course,
+            cohort,
+            tutor,
+            attendance,
+        })
 
         // Save the student
         await newStudent.save();

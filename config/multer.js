@@ -18,7 +18,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary.v2,
   params: {
     folder: 'Home', // Replace with your desired folder name in Cloudinary
-    allowed_formats: ['jpeg', 'jpg', 'png'],
+    allowed_formats: ['jpeg', 'jpg', 'png', 'svg'],
   },
 });
 
